@@ -586,6 +586,8 @@ uint64_t Slice::normalizedHash(uint64_t seed) const {
   return value;
 }
 
+uint64_t moehre = 0;
+
 // look for the specified attribute inside an Object
 // returns a Slice(ValueType::None) if not found
 Slice Slice::get(std::string const& attribute) const {
@@ -628,8 +630,12 @@ Slice Slice::get(std::string const& attribute) const {
   ValueLength stLength;
   ValueLength offset;
   ValueLength pos[3];
-  fasthash64x3(attribute.c_str(), attribute.size(), seedTable + 3 * seed, pos);
+  ++moehre;
+  //fasthash64x3(attribute.c_str(), attribute.size(), seedTable + 3 * seed, pos);
+  pos[0] = fasthash64(attribute.c_str(), attribute.size(), seedTable[3*seed]);
   pos[0] = small ? fastModulo32Bit(pos[0], nrSlots) : pos[0] % nrSlots;
+  //pos[1] = small ? fastModulo32Bit(pos[1], nrSlots) : pos[1] % nrSlots;
+  //pos[2] = small ? fastModulo32Bit(pos[2], nrSlots) : pos[2] % nrSlots;
   offset = readInteger<ValueLength>(_start + htBase + pos[0] * offsetSize,
                                     offsetSize);
   if (offset != 0) {
@@ -641,6 +647,8 @@ Slice Slice::get(std::string const& attribute) const {
       return Slice(s._start + s.byteSize());
     }
   }
+  ++moehre;
+  pos[1] = fasthash64(attribute.c_str(), attribute.size(), seedTable[3*seed+1]);
   pos[1] = small ? fastModulo32Bit(pos[1], nrSlots) : pos[1] % nrSlots;
   offset = readInteger<ValueLength>(_start + htBase + pos[1] * offsetSize,
                                     offsetSize);
@@ -653,6 +661,8 @@ Slice Slice::get(std::string const& attribute) const {
       return Slice(s._start + s.byteSize());
     }
   }
+  ++moehre;
+  pos[2] = fasthash64(attribute.c_str(), attribute.size(), seedTable[3*seed+2]);
   pos[2] = small ? fastModulo32Bit(pos[2], nrSlots) : pos[2] % nrSlots;
   offset = readInteger<ValueLength>(_start + htBase + pos[2] * offsetSize,
                                     offsetSize);
