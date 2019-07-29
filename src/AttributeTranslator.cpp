@@ -34,7 +34,9 @@
 using namespace arangodb::velocypack;
 
 AttributeTranslator::AttributeTranslator()
-    : _count(0) {}
+    : _keyToId(16, StringRef()),
+      _idToKey(16, 0),
+      _count(0) {}
 
 AttributeTranslator::~AttributeTranslator() {}
 

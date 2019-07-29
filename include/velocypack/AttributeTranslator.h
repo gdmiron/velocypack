@@ -30,9 +30,9 @@
 #include <cstdint>
 #include <memory>
 #include <string>
-#include <unordered_map>
 
 #include "velocypack/velocypack-common.h"
+#include "velocypack/HashMap.h"
 #include "velocypack/StringRef.h"
 
 namespace arangodb {
@@ -90,8 +90,8 @@ class AttributeTranslator {
 
  private:
   std::unique_ptr<Builder> _builder;
-  std::unordered_map<StringRef, uint8_t const*> _keyToId;
-  std::unordered_map<uint64_t, uint8_t const*> _idToKey;
+  HashMap<StringRef, uint8_t const*> _keyToId;
+  HashMap<uint64_t, uint8_t const*> _idToKey;
   std::size_t _count;
 };
 
