@@ -46,6 +46,7 @@ set(VELOCITY_SOURCE
     src/Version.cpp
     src/asm-functions.cpp
     src/fasthash.cpp
+    src/xxhash.cpp
     src/fpconv.cpp
 )
 

@@ -515,22 +515,6 @@ Slice Slice::translateUnchecked() const {
   return Slice();
 }
 
-// check if two Slices are equal on the binary level
-bool Slice::equals(Slice const& other) const {
-  if (head() != other.head()) {
-    return false;
-  }
-
-  ValueLength const size = byteSize();
-
-  if (size != other.byteSize()) {
-    return false;
-  }
-
-  return (memcmp(start(), other.start(),
-                 arangodb::velocypack::checkOverflow(size)) == 0);
-}
-
 std::string Slice::toJson(Options const* options) const {
   std::string buffer;
   StringSink sink(&buffer);
@@ -558,12 +542,14 @@ uint64_t Slice::normalizedHash(uint64_t seed) const {
   if (isNumber()) {
     // upcast integer values to double
     double v = getNumericValue<double>();
-    value = fasthash64(&v, sizeof(v), seed);
+    //value = fasthash64(&v, sizeof(v), seed);
+    value = XXH64(&v, sizeof(v), seed);
   } else if (isArray()) {
     // normalize arrays by hashing array length and iterating
     // over all array members
     uint64_t const n = length() ^ 0xba5bedf00d;
-    value = fasthash64(&n, sizeof(n), seed);
+    //value = fasthash64(&n, sizeof(n), seed);
+    value = XXH64(&n, sizeof(n), seed);
     for (auto const& it : ArrayIterator(*this)) {
       value ^= it.normalizedHash(value);
     }
@@ -571,7 +557,8 @@ uint64_t Slice::normalizedHash(uint64_t seed) const {
     // normalize objects by hashing object length and iterating
     // over all object members
     uint64_t const n = length() ^ 0xf00ba44ba5;
-    uint64_t seed2 = fasthash64(&n, sizeof(n), seed);
+    // uint64_t seed2 = fasthash64(&n, sizeof(n), seed);
+    uint64_t seed2 = XXH64(&n, sizeof(n), seed);
     value = seed2;
     for (auto const& it : ObjectIterator(*this)) {
       uint64_t seed3 = it.key.normalizedHash(seed2);
@@ -632,7 +619,8 @@ Slice Slice::get(std::string const& attribute) const {
   ValueLength pos[3];
   ++moehre;
   //fasthash64x3(attribute.c_str(), attribute.size(), seedTable + 3 * seed, pos);
-  pos[0] = fasthash64(attribute.c_str(), attribute.size(), seedTable[3*seed]);
+  //pos[0] = fasthash64(attribute.c_str(), attribute.size(), seedTable[3*seed]);
+  pos[0] = XXH64(attribute.c_str(), attribute.size(), seedTable[3*seed]);
   pos[0] = small ? fastModulo32Bit(pos[0], nrSlots) : pos[0] % nrSlots;
   //pos[1] = small ? fastModulo32Bit(pos[1], nrSlots) : pos[1] % nrSlots;
   //pos[2] = small ? fastModulo32Bit(pos[2], nrSlots) : pos[2] % nrSlots;
@@ -648,7 +636,8 @@ Slice Slice::get(std::string const& attribute) const {
     }
   }
   ++moehre;
-  pos[1] = fasthash64(attribute.c_str(), attribute.size(), seedTable[3*seed+1]);
+  //pos[1] = fasthash64(attribute.c_str(), attribute.size(), seedTable[3*seed+1]);
+  pos[1] = XXH64(attribute.c_str(), attribute.size(), seedTable[3*seed+1]);
   pos[1] = small ? fastModulo32Bit(pos[1], nrSlots) : pos[1] % nrSlots;
   offset = readInteger<ValueLength>(_start + htBase + pos[1] * offsetSize,
                                     offsetSize);
@@ -662,7 +651,8 @@ Slice Slice::get(std::string const& attribute) const {
     }
   }
   ++moehre;
-  pos[2] = fasthash64(attribute.c_str(), attribute.size(), seedTable[3*seed+2]);
+  //pos[2] = fasthash64(attribute.c_str(), attribute.size(), seedTable[3*seed+2]);
+  pos[2] = XXH64(attribute.c_str(), attribute.size(), seedTable[3*seed+2]);
   pos[2] = small ? fastModulo32Bit(pos[2], nrSlots) : pos[2] % nrSlots;
   offset = readInteger<ValueLength>(_start + htBase + pos[2] * offsetSize,
                                     offsetSize);

@@ -42,6 +42,10 @@
 #include "velocypack/Value.h"
 #include "velocypack/ValueType.h"
 
+extern "C" {
+unsigned long long XXH64(void const*, size_t, unsigned long long);
+}
+
 namespace arangodb {
 namespace velocypack {
 
@@ -141,8 +145,9 @@ class Slice {
   inline uint8_t head() const throw() { return *_start; }
 
   // hashes the binary representation of a value
-  inline uint64_t hash(uint64_t seed = 0xdeadbeef) const {
-    return fasthash64(start(), checkOverflow(byteSize()), seed);
+  inline uint64_t hash(unsigned long long seed = 0xdeadbeef) const {
+    return XXH64(start(), checkOverflow(byteSize()), seed);
+    //return fasthash64(start(), checkOverflow(byteSize()), seed);
   }
 
   // hashes the value, normalizing different representations of
@@ -709,7 +714,21 @@ class Slice {
   bool isEqualString(std::string const& attribute) const;
 
   // check if two Slices are equal on the binary level
-  bool equals(Slice const& other) const;
+  bool equals(Slice const& other) const {
+    if (head() != other.head()) {
+      return false;
+    }
+
+    ValueLength const size = byteSize();
+
+    if (size != other.byteSize()) {
+      return false;
+    }
+
+    return (memcmp(start(), other.start(),
+                   arangodb::velocypack::checkOverflow(size)) == 0);
+  }
+
   bool operator==(Slice const& other) const { return equals(other); }
   bool operator!=(Slice const& other) const { return !equals(other); }
 

@@ -678,6 +678,7 @@ uint8_t* Builder::set(Value const& item) {
         s = &value;
       }
       ValueLength v = s->size();
+      reserveSpace(9 + v);
       appendUInt(v, 0xbf);
       memcpy(_start + _pos, s->c_str(), checkOverflow(v));
       _pos += v;
@@ -872,7 +873,10 @@ ValueLength Builder::computeCuckooHash(std::vector<ValueLength>& ht,
         }
       };
 
-      fasthash64x3(attrName, attrLen, Slice::seedTable + 3 * seed, pos);
+      //fasthash64x3(attrName, attrLen, Slice::seedTable + 3 * seed, pos);
+      pos[0] = XXH64(attrName, attrLen, Slice::seedTable[3 * seed]);
+      pos[1] = XXH64(attrName, attrLen, Slice::seedTable[3 * seed + 1]);
+      pos[2] = XXH64(attrName, attrLen, Slice::seedTable[3 * seed + 2]);
 
       // On the topic of uniqueness: This program never deletes entries
       // from the hash table (except throwing the table away completely).
