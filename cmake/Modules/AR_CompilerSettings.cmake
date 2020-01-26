@@ -36,18 +36,18 @@ elseif(MSVC)
     message(STATUS "Compiler type MSVC: ${CMAKE_CXX_COMPILER}")
     add_definitions("-D_CRT_SECURE_NO_WARNINGS=1")
 
-  #   foreach (flag_var
-  #          CMAKE_CXX_FLAGS
-  #          CMAKE_CXX_FLAGS_DEBUG
-  #          CMAKE_CXX_FLAGS_RELEASE
-  #          CMAKE_CXX_FLAGS_MINSIZEREL
-  #          CMAKE_CXX_FLAGS_RELWITHDEBINFO)
-  #   if (flag_var MATCHES "DEBUG")
-  #     set(${flag_var} "${${flag_var}} /MTd")
-  #   else ()
-  #     set(${flag_var} "${${flag_var}} /MT")
-  #   endif ()
-  # endforeach()
+    foreach (flag_var
+           CMAKE_CXX_FLAGS
+           CMAKE_CXX_FLAGS_DEBUG
+           CMAKE_CXX_FLAGS_RELEASE
+           CMAKE_CXX_FLAGS_MINSIZEREL
+           CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+    if (flag_var MATCHES "DEBUG")
+      set(${flag_var} "${${flag_var}} /MDd")
+    else ()
+      set(${flag_var} "${${flag_var}} /MD")
+    endif ()
+  endforeach()
 
   # https://msdn.microsoft.com/en-us/library/aa267384%28VS.60%29.aspx
   set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} /INCREMENTAL:NO /SUBSYSTEM:CONSOLE /LTCG /ignore:4099 /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrtd.lib")
